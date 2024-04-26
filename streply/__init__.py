@@ -6,7 +6,7 @@ from streply.session import session
 def microtime():
     return float(time.time())
 
-__streply_version__ = '0.0.2'
+__streply_version__ = '0.0.3'
 __start_time__ = microtime()
 __session__ = session()
 

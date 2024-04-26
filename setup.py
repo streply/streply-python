@@ -13,7 +13,7 @@ def read_file(file_name):
 
 setup(
     name='streply-sdk',
-    version='0.0.01',
+    version='0.0.3',
     author='Streply',
     author_email='support@streply.com',
     project_urls={
