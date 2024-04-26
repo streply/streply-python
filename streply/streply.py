@@ -13,12 +13,19 @@ from streply.utils import parseParams
 
 
 class streply:
-    def __init__(self, _dsn: str, _options: object):
+    def __init__(self, _dsn: str, _options: object = {}):
         self._dsn = dsn(_dsn)
         self._options = options(_options)
         self._request = request(self._dsn, self._options)
         self._user = None
+        self._scope = None
         sys.streply = self
+
+    def set_scope(self, scope):
+        self._scope = scope
+
+    def scope(self):
+        return self._scope
 
     def set_option(self, name: str, value):
         self._options.set(name, value)

@@ -53,17 +53,37 @@ class entity:
 
     def toJson(self):
         if self._message is None:
-            print('error')  # @TODO:
+            raise Exception('Message cannot be empty')
 
         _time = microtime()
         _loadTime = _time - __start_time__
+        _scope = sys.streply.scope()
+        _flag = None
+        _url = None
+        _channel = None
+        _environment = self._options.environment()
+        _release = self._options.release()
+
+        if _scope is not None:
+            _flag = _scope.flag
+            _url = _scope.url
+            _channel = _scope.channel
+
+            if _scope.environment is not None:
+                _environment = _scope.environment
+
+            if _scope.release is not None:
+                _release = _scope.release
+
+            if not _scope.global_scope:
+                sys.streply.set_scope(None)
 
         return {
             'eventType': 'event',
             'traceId': __session__.traceId(),
             'traceUniqueId': __session__.traceUniqueId(),
-            'sessionId': __session__.sessionId(),  # @TODO:
-            'userId': __session__.userId(),  # @TODO:
+            'sessionId': __session__.sessionId(),
+            'userId': __session__.userId(),
             'status': 0,
             'dateTimeZone': str(datetime.datetime.now().astimezone().tzname()),
             'date': str(datetime.datetime.now()),
@@ -72,8 +92,8 @@ class entity:
             'loadTime': _loadTime,
             'technology': 'python',
             'technologyVersion': platform.python_version(),
-            'environment': self._options.environment(),
-            'release': self._options.release(),
+            'environment': _environment,
+            'release': _release,
             'projectId': self._dsn.getProjectId(),
             'httpStatusCode': 200,
             'apiClientVersion': __streply_version__,
@@ -85,10 +105,11 @@ class entity:
             'requestParams': sys.argv,
             'dir': os.getcwd(),
             'user': self._user,
-            'url': None,
-            'flag': None,
+            'url': _url,
+            'flag': _flag,
             'file': self._file,
             'line': self._line,
             'exceptionName': self._exception_name,
             'trace': self._trace,
+            'channel': _channel,
         }
