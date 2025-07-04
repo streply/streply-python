@@ -26,6 +26,30 @@ Install the Streply SDK using pip:
 pip install streply-sdk
 ```
 
+## Framework-Specific Installation
+
+For framework-specific integrations, install with the appropriate extras:
+
+```bash
+# Django integration
+pip install streply-sdk[django]
+
+# Flask integration
+pip install streply-sdk[flask]
+
+# FastAPI integration
+pip install streply-sdk[fastapi]
+
+# Bottle integration
+pip install streply-sdk[bottle]
+
+# Celery integration
+pip install streply-sdk[celery]
+
+# RQ (Redis Queue) integration
+pip install streply-sdk[rq]
+```
+
 ---
 
 ## Quick Start
