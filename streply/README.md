@@ -1,15 +1,186 @@
-# Streply SDK dla Pythona
+# Streply SDK for Python
 
-Oficjalne SDK Streply dla aplikacji Python. Streply jest kompleksowym narzędziem monitorowania i diagnozowania błędów dla aplikacji.
+**Streply** is a comprehensive error tracking and monitoring solution for Python applications.  
+As a powerful alternative to Sentry, Streply helps you identify, track, and resolve issues in your Python applications with minimal setup.
 
-## Instalacja
+---
+
+## Features
+
+- **Automatic error tracking**: Capture unhandled exceptions and errors  
+- **Custom event tracking**: Track custom events and messages  
+- **User context**: Associate errors with specific users  
+- **Breadcrumbs**: Track application flow leading up to errors  
+- **Performance monitoring**: Measure and track performance of your application  
+- **Context data**: Capture request data, environment variables, and more  
+- **Data scrubbing**: Automatically scrub sensitive data from error reports  
+- **Framework integrations**: Seamless integration with popular Python frameworks  
+
+---
+
+## Installation
+
+Install the Streply SDK using pip:
 
 ```bash
-# Podstawowa instalacja
 pip install streply-sdk
+```
 
-# Z integracją Django
-pip install streply-sdk[django]
+---
 
-# Z integracją Flask
-pip install streply-sdk[flask]
+## Quick Start
+
+```python
+import streply
+
+# Initialize the SDK with your DSN
+streply.init(
+    dsn="https://your-public-key@streply.com/your-project-id",
+    environment="production",  # Optional
+    release="1.0.0"            # Optional
+)
+
+# Capture exceptions
+try:
+    1 / 0
+except Exception as e:
+    streply.capture_exception()
+
+# Capture custom messages
+streply.capture_message("Something happened!", level="warning")
+
+# Set user context
+streply.set_user({
+    "userId": "123",
+    "userName": "johndoe",
+    "params": [
+        {"name": "email", "value": "john@example.com"}
+    ]
+})
+
+# Add breadcrumbs to track application flow
+streply.add_breadcrumb(
+    category="auth",
+    message="User logged in",
+    level="info",
+    data={"method": "google-oauth"}
+)
+
+# Performance monitoring
+@streply.trace
+def slow_function():
+    # Your code here
+    pass
+
+# Or use context manager
+with streply.trace_ctx(name="database-query", op="db.query"):
+    # Your database query here
+    pass
+```
+
+---
+
+## Supported Frameworks
+
+Streply automatically detects and integrates with the following frameworks:
+
+- **Django**: Full request/response cycle tracking, user context, and middleware integration  
+- **Flask**: Error handling, request tracking, and context management  
+- **FastAPI**: Exception middleware, request middleware, and context tracking  
+- **Bottle**: Error handling and request context tracking  
+- **Celery**: Task failure handling, retry tracking, and task context  
+- **RQ (Redis Queue)**: Job execution monitoring and failure tracking  
+- **WSGI**: Generic WSGI application support  
+
+---
+
+## Configuration Options
+
+```python
+streply.init(
+    dsn="https://your-public-key@streply.com/your-project-id",
+    environment="production",          # Application environment
+    release="1.0.0",                   # Release version
+    send_default_pii=True,             # Whether to include PII data
+    max_breadcrumbs=100,               # Maximum number of breadcrumbs to store
+    sample_rate=1.0,                   # Event sampling rate (0.0 to 1.0)
+    traces_sample_rate=1.0,            # Performance sampling rate (0.0 to 1.0)
+    debug=False,                       # Enable debug mode
+    integrations=[]                    # Custom integrations
+)
+```
+
+---
+
+## Context Management
+
+Streply allows you to configure the scope for capturing additional context with errors:
+
+```python
+# Configure the scope
+with streply.configure_scope() as scope:
+    scope.set_tag("server", "web-1")
+    scope.set_extra("database_connection", "healthy")
+
+# Set tags directly
+streply.set_tag("feature_enabled", True)
+
+# Set extra data
+streply.set_extra("cart_items", 5)
+```
+
+---
+
+## Advanced Usage
+
+### Custom Transport
+
+```python
+from streply_sdk.core.transport import Transport
+
+class CustomTransport(Transport):
+    def send(self, event):
+        # Custom implementation
+        pass
+
+streply.init(
+    dsn="https://your-public-key@streply.com/your-project-id",
+    transport=CustomTransport(dsn="https://your-public-key@streply.com/your-project-id")
+)
+```
+
+### Event Hooks
+
+```python
+def before_send(event, hint):
+    # Modify event before sending
+    if "password" in event.get("message", ""):
+        return None  # Don't send events with passwords
+    return event
+
+streply.init(
+    dsn="https://your-public-key@streply.com/your-project-id",
+    hooks={
+        "before_send": before_send
+    }
+)
+```
+
+---
+
+## Comparison with Sentry
+
+While Sentry is a well-established error tracking solution, Streply offers:
+
+- Simplified setup and configuration  
+- Lower resource overhead  
+- Focused feature set for Python applications  
+- Streamlined UI for faster issue resolution  
+- Enhanced privacy controls  
+- Competitive pricing model  
+
+---
+
+## License
+
+This SDK is distributed under the MIT license. See the [LICENSE](LICENSE) file for more information.
