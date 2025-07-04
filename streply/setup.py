@@ -33,9 +33,8 @@ setup(
         'urllib3>=1.20',
     ],
     extras_require={
-        'django': ['django>=2.0'],
-        'flask': ['flask>=1.0'],
-        'fastapi': ['fastapi>=0.68.0'],
+        'django': [''],
+        'flask': ['']
     },
     classifiers=[
         'Development Status :: 4 - Beta',
