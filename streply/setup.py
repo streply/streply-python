@@ -11,7 +11,7 @@ with open('README.md', encoding='utf-8') as f:
 
 setup(
     name='streply-sdk',
-    version='1.0.0',
+    version='1.0.1',
     author='Streply',
     author_email='support@streply.com',
     description='The all-in-one monitoring app for smart devs',
