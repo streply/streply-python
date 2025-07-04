@@ -1,28 +1,14 @@
-"""
-Klasa Event do reprezentacji zdarzeń Streply
-"""
 import uuid
 import datetime
 import platform
 import sys
 import os
-from typing import Dict, Any, Optional, List
+import time
+from typing import Dict, Any
+
 
 class Event:
-    """Reprezentacja zdarzenia Streply"""
-    
     def __init__(self, client, type='log', message='', level='normal', exception_name=None, params=None):
-        """
-        Inicjalizuje zdarzenie
-        
-        Args:
-            client: Klient Streply
-            type: Typ zdarzenia (log, error, activity)
-            message: Wiadomość zdarzenia
-            level: Poziom zdarzenia (normal, critical, high, low)
-            exception_name: Nazwa wyjątku (dla typu error)
-            params: Dodatkowe parametry
-        """
         self.client = client
         self.type = type
         self.message = message
@@ -32,33 +18,26 @@ class Event:
         self.trace = []
         self.file = None
         self.line = None
-        
-        # Generowanie identyfikatorów
-        self.trace_unique_id = f"{client.trace_id}_{client.trace_counter}"
-        
-        # Czas
+
+        self.trace_unique_id = f'{client.trace_id}_{client.trace_counter}'
+
         self.time = datetime.datetime.now()
         self.start_time = client.start_time
         self.load_time = time.time() - client.start_time
-        
-        # Kontekst
+
         self.context_data = {}
-    
+
     def add_trace(self, trace):
-        """Dodaje informacje o stacktrace"""
         self.trace = trace
-    
+
     def set_file_line(self, file, line):
-        """Ustawia informacje o pliku i linii"""
         self.file = file
         self.line = line
-    
+
     def update_from_context(self, context):
-        """Aktualizuje zdarzenie danymi z kontekstu"""
         self.context_data = context.get_event_data()
-    
+
     def to_dict(self) -> Dict[str, Any]:
-        """Konwertuje zdarzenie na słownik gotowy do wysłania do API"""
         data = {
             'eventType': 'event',
             'traceId': self.client.trace_id,
@@ -94,20 +73,18 @@ class Event:
             'trace': self.trace,
             'channel': self.client.context.get('channel', None),
         }
-        
-        # Dodaj dane z kontekstu
+
         data.update(self.context_data)
-        
+
         return data
-    
+
     def _format_params(self, params):
-        """Formatuje parametry w formacie wymaganym przez API"""
         formatted_params = []
-        
+
         for key, value in params.items():
             formatted_params.append({
                 'name': key,
                 'value': value
             })
-        
+
         return formatted_params

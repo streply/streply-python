@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-""" 
+'''
 Streply SDK - The all-in-one monitoring app for smart devs
-"""
+'''
 
 from setuptools import setup, find_packages
-import os
 
-# Odczytanie długiego opisu z README.md
 with open('README.md', encoding='utf-8') as f:
     long_description = f.read()
 
@@ -33,8 +31,12 @@ setup(
         'urllib3>=1.20',
     ],
     extras_require={
-        'django': [''],
-        'flask': ['']
+        'bottle': ['bottle>=0.12.13'],
+        'celery': ['celery>=3'],
+        'django': ['django>=1.8'],
+        'fastapi': ['fastapi>=0.79.0'],
+        'flask': ['flask>=0.11', 'blinker>=1.1', 'markupsafe'],
+        'rq': ['rq>=0.6']
     },
     classifiers=[
         'Development Status :: 4 - Beta',

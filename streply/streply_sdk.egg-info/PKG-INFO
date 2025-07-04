@@ -30,12 +30,20 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: requests>=2.20.0
 Requires-Dist: urllib3>=1.20
+Provides-Extra: bottle
+Requires-Dist: bottle>=0.12.13; extra == "bottle"
+Provides-Extra: celery
+Requires-Dist: celery>=3; extra == "celery"
 Provides-Extra: django
-Requires-Dist: django>=2.0; extra == "django"
-Provides-Extra: flask
-Requires-Dist: flask>=1.0; extra == "flask"
+Requires-Dist: django>=1.8; extra == "django"
 Provides-Extra: fastapi
-Requires-Dist: fastapi>=0.68.0; extra == "fastapi"
+Requires-Dist: fastapi>=0.79.0; extra == "fastapi"
+Provides-Extra: flask
+Requires-Dist: flask>=0.11; extra == "flask"
+Requires-Dist: blinker>=1.1; extra == "flask"
+Requires-Dist: markupsafe; extra == "flask"
+Provides-Extra: rq
+Requires-Dist: rq>=0.6; extra == "rq"
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier

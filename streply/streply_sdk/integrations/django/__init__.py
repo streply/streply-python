@@ -1,3 +1,0 @@
-"""
-Integracja z Django
-"""
