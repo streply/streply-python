@@ -1,0 +1,3 @@
+"""
+Integracja z Flask
+"""
