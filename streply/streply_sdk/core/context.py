@@ -215,3 +215,7 @@ class Context:
     def request(self):
         """Zwraca dane żądania z aktualnego scope"""
         return self.current_scope.request
+
+    def set_url(self, url):
+        """Ustawia URL w aktualnym scope"""
+        self.current_scope.set_url(url)

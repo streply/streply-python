@@ -13,10 +13,30 @@ class DjangoIntegration(Integration):
     
     @staticmethod
     def is_available():
+        """
+        Sprawdza, czy Django jest zainstalowane i skonfigurowane
+        
+        Returns:
+            bool: True jeśli Django jest dostępne i aktywne
+        """
         try:
+            # Sprawdź, czy Django jest zainstalowane
             import django
-            return True
+            
+            # Sprawdź, czy Django jest skonfigurowane
+            if not hasattr(django, 'setup'):
+                return False
+            
+            # Sprawdź, czy Django jest już skonfigurowane (settings są załadowane)
+            if not hasattr(django.conf, 'settings'):
+                return False
+                
+            # Sprawdź, czy Django jest faktycznie używane w projekcie
+            return 'django.core' in sys.modules
         except ImportError:
+            return False
+        except Exception:
+            # W przypadku innych błędów, zakładamy że Django nie jest poprawnie skonfigurowane
             return False
     
     def setup(self, client):
@@ -46,6 +66,8 @@ class DjangoIntegration(Integration):
             logger.debug("Django integration enabled")
         except ImportError as e:
             logger.error(f"Error setting up Django integration: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error setting up Django integration: {e}")
     
     def _handle_exception(self, sender, request=None, **kwargs):
         """Handler dla sygnału got_request_exception"""
@@ -56,15 +78,21 @@ class DjangoIntegration(Integration):
             self._add_request_data(request)
         
         # Przechwytywanie wyjątku
-        self.client.capture_exception(
-            exc_info,
-            request=self._get_request_data(request) if request else None
-        )
+        try:
+            self.client.capture_exception(
+                exc_info,
+                request=self._get_request_data(request) if request else None
+            )
+        except Exception as e:
+            logger.error(f"Error capturing Django exception: {e}")
     
     def _handle_request_started(self, sender, environ=None, **kwargs):
         """Handler dla sygnału request_started"""
         # Czyszczenie kontekstu na początku żądania
-        self.client.context.clear_request_data()
+        try:
+            self.client.context.clear_request_data()
+        except Exception as e:
+            logger.error(f"Error handling request_started: {e}")
     
     def _handle_request_finished(self, sender, **kwargs):
         """Handler dla sygnału request_finished"""
@@ -73,39 +101,40 @@ class DjangoIntegration(Integration):
     
     def _add_request_data(self, request):
         """Dodaje dane żądania do kontekstu klienta"""
-        user_data = self._get_user_data(request)
-        if user_data and self.client.send_default_pii:
-            self.client.context.set_user(user_data)
-        
-        # Ustaw dane żądania w kontekście
-        url = request.build_absolute_uri()
-        # self.client.context.set_url(url)
-        request_data = {
-            'url': url,
-            'method': request.method,
-            'params': {
-                'GET': dict(request.GET),
-                'POST': dict(request.POST) if self.client.send_default_pii else {},
-                'headers': self._get_headers(request),
-            },
-            'user_agent': request.META.get('HTTP_USER_AGENT'),
-            'cookies': request.COOKIES if self.client.send_default_pii else {},
-            'ip_address': self._get_client_ip(request) if self.client.send_default_pii else None,
-        }
-        self.client.context.set_request_data(request_data)
-        
-        self.client.context.set_request_data({
-            'url': url,
-            'method': request.method,
-            'params': {
-                'GET': dict(request.GET),
-                'POST': dict(request.POST) if self.client.send_default_pii else {},
-                'headers': self._get_headers(request),
-            },
-            'user_agent': request.META.get('HTTP_USER_AGENT'),
-            'cookies': request.COOKIES if self.client.send_default_pii else {},
-            'ip_address': self._get_client_ip(request) if self.client.send_default_pii else None,
-        })
+        try:
+            user_data = self._get_user_data(request)
+            if user_data and self.client.send_default_pii:
+                self.client.context.set_user(user_data)
+            
+            # Ustaw dane żądania w kontekście
+            url = request.build_absolute_uri()
+            
+            # Używanie kontekstu
+            with self.client.configure_scope() as scope:
+                scope.set_tag("url", url)
+                scope.set_tag("method", request.method)
+                
+                # Dodanie dodatkowych tagów
+                if hasattr(request, 'resolver_match') and request.resolver_match:
+                    scope.set_tag("view", request.resolver_match.view_name)
+                
+            # Ustaw dane żądania
+            request_data = {
+                'url': url,
+                'method': request.method,
+                'params': {
+                    'GET': dict(request.GET),
+                    'POST': dict(request.POST) if self.client.send_default_pii else {},
+                    'headers': self._get_headers(request),
+                },
+                'user_agent': request.META.get('HTTP_USER_AGENT'),
+                'cookies': request.COOKIES if self.client.send_default_pii else {},
+                'ip_address': self._get_client_ip(request) if self.client.send_default_pii else None,
+            }
+            
+            self.client.context.set_request_data(request_data)
+        except Exception as e:
+            logger.error(f"Error adding request data: {e}")
     
     def _get_user_data(self, request):
         """Wyciąga dane użytkownika z żądania Django"""
@@ -114,23 +143,27 @@ class DjangoIntegration(Integration):
         
         user = request.user
         
-        if not user.is_authenticated:
+        if not hasattr(user, 'is_authenticated') or not user.is_authenticated:
             return None
         
-        user_data = {
-            'userId': str(user.id),
-            'userName': getattr(user, user.USERNAME_FIELD, str(user.id)),
-            'params': []
-        }
-        
-        # Dodanie email, jeśli dostępny
-        if hasattr(user, 'email') and user.email:
-            user_data['params'].append({
-                'name': 'email',
-                'value': user.email
-            })
-        
-        return user_data
+        try:
+            user_data = {
+                'userId': str(user.id),
+                'userName': getattr(user, user.USERNAME_FIELD, str(user.id)),
+                'params': []
+            }
+            
+            # Dodanie email, jeśli dostępny
+            if hasattr(user, 'email') and user.email:
+                user_data['params'].append({
+                    'name': 'email',
+                    'value': user.email
+                })
+            
+            return user_data
+        except Exception as e:
+            logger.error(f"Error getting user data: {e}")
+            return None
     
     def _get_request_data(self, request):
         """Przekształca obiekt żądania Django na strukturę dla API"""
@@ -166,11 +199,14 @@ class DjangoIntegration(Integration):
     
     def _setup_logging(self):
         """Konfiguruje integrację z loggerem Django"""
-        from streply_sdk.integrations.logging import StreplyHandler
-        
-        # Dodaj handler dla loggera Django
-        handler = StreplyHandler(client=self.client)
-        handler.setLevel(logging.ERROR)
-        
-        django_logger = logging.getLogger('django')
-        django_logger.addHandler(handler)
+        try:
+            from streply_sdk.integrations.logging import StreplyHandler
+            
+            # Dodaj handler dla loggera Django
+            handler = StreplyHandler(client=self.client)
+            handler.setLevel(logging.ERROR)
+            
+            django_logger = logging.getLogger('django')
+            django_logger.addHandler(handler)
+        except Exception as e:
+            logger.error(f"Error setting up Django logging: {e}")
