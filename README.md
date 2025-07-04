@@ -1,7 +1,8 @@
-# Streply SDK for Python
+# Streply.com SDK for Python
 
-**Streply** is a comprehensive error tracking and monitoring solution for Python applications.  
-As a powerful alternative to Sentry, Streply helps you identify, track, and resolve issues in your Python applications with minimal setup.
+**Streply.com** is a comprehensive error tracking and monitoring solution for applications.
+
+Streply helps you identify, track, and resolve issues in your Python applications with minimal setup.
 
 ---
 
@@ -55,10 +56,10 @@ pip install streply-sdk[rq]
 ## Quick Start
 
 ```python
-import streply
+import streply_sdk
 
 # Initialize the SDK with your DSN
-streply.init(
+streply_sdk.init(
     dsn="https://your-public-key@streply.com/your-project-id",
     environment="production",  # Optional
     release="1.0.0"            # Optional
@@ -68,13 +69,13 @@ streply.init(
 try:
     1 / 0
 except Exception as e:
-    streply.capture_exception()
+    streply_sdk.capture_exception()
 
 # Capture custom messages
-streply.capture_message("Something happened!", level="warning")
+streply_sdk.capture_message("Something happened!", level="warning")
 
 # Set user context
-streply.set_user({
+streply_sdk.set_user({
     "userId": "123",
     "userName": "johndoe",
     "params": [
@@ -83,7 +84,7 @@ streply.set_user({
 })
 
 # Add breadcrumbs to track application flow
-streply.add_breadcrumb(
+streply_sdk.add_breadcrumb(
     category="auth",
     message="User logged in",
     level="info",
@@ -91,13 +92,13 @@ streply.add_breadcrumb(
 )
 
 # Performance monitoring
-@streply.trace
+@streply_sdk.trace
 def slow_function():
     # Your code here
     pass
 
 # Or use context manager
-with streply.trace_ctx(name="database-query", op="db.query"):
+with streply_sdk.trace_ctx(name="database-query", op="db.query"):
     # Your database query here
     pass
 ```
@@ -121,7 +122,7 @@ Streply automatically detects and integrates with the following frameworks:
 ## Configuration Options
 
 ```python
-streply.init(
+streply_sdk.init(
     dsn="https://your-public-key@streply.com/your-project-id",
     environment="production",          # Application environment
     release="1.0.0",                   # Release version
@@ -142,15 +143,15 @@ Streply allows you to configure the scope for capturing additional context with 
 
 ```python
 # Configure the scope
-with streply.configure_scope() as scope:
+with streply_sdk.configure_scope() as scope:
     scope.set_tag("server", "web-1")
     scope.set_extra("database_connection", "healthy")
 
 # Set tags directly
-streply.set_tag("feature_enabled", True)
+streply_sdk.set_tag("feature_enabled", True)
 
 # Set extra data
-streply.set_extra("cart_items", 5)
+streply_sdk.set_extra("cart_items", 5)
 ```
 
 ---
@@ -167,7 +168,7 @@ class CustomTransport(Transport):
         # Custom implementation
         pass
 
-streply.init(
+streply_sdk.init(
     dsn="https://your-public-key@streply.com/your-project-id",
     transport=CustomTransport(dsn="https://your-public-key@streply.com/your-project-id")
 )
@@ -182,7 +183,7 @@ def before_send(event, hint):
         return None  # Don't send events with passwords
     return event
 
-streply.init(
+streply_sdk.init(
     dsn="https://your-public-key@streply.com/your-project-id",
     hooks={
         "before_send": before_send
