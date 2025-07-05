@@ -193,19 +193,6 @@ streply_sdk.init(
 
 ---
 
-## Comparison with Sentry
-
-While Sentry is a well-established error tracking solution, Streply offers:
-
-- Simplified setup and configuration  
-- Lower resource overhead  
-- Focused feature set for Python applications  
-- Streamlined UI for faster issue resolution  
-- Enhanced privacy controls  
-- Competitive pricing model  
-
----
-
 ## License
 
 This SDK is distributed under the MIT license. See the [LICENSE](LICENSE) file for more information.
